@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "DiscoverBlockchain ICO ERC20 Smart Contract Token (DSC)",
   "main": "truffle.js",
+  "license": "MIT",
   "author": "DiscoverBlockchain",
   "repository": {
     "type": "git",
@@ -48,7 +49,8 @@
     "standard": "^11.0.1",
     "truffle": "^4.1.5",
     "truffle-hdwallet-provider": "0.0.5",
-    "web3": "^1.0.0-beta.33"
+    "web3": "^1.0.0-beta.33",
+    "webpack": "^4.0.0"
   },
   "dependencies": {
     "openzeppelin-solidity": "1.9.0",
