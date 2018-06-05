@@ -1,7 +1,7 @@
 let DiscoverBlockchainCrowdsale = artifacts.require("./DiscoverBlockchainCrowdsale.sol");
 
 module.exports = function(deployer) {
-    const startTime = Math.round((new Date(Date.now() - 86400000).getTime())/1000); // Yesterday
+    const startTime = Math.round((new Date().getTime())/1000); // Today
     const endTime = Math.round((new Date().getTime() + (86400000 * 20))/1000); // Today + 20 days
     deployer.deploy(DiscoverBlockchainCrowdsale,
         startTime,

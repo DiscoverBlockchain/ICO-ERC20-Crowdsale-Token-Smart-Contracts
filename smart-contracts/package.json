@@ -43,7 +43,7 @@
     "ganache-cli": "^6.1.0",
     "lite-server": "^2.3.0",
     "random-bytes": "^1.0.0",
-    "solc": "^0.4.21",
+    "solc": "^0.4.24",
     "solhint": "^1.1.10",
     "solidity-coverage": "^0.5.4",
     "standard": "^11.0.1",
@@ -53,7 +53,6 @@
     "webpack": "^4.0.0"
   },
   "dependencies": {
-    "openzeppelin-solidity": "1.9.0",
-    "zeppelin-solidity": "^1.5.0"
+    "openzeppelin-solidity": "1.9.0"
   }
 }
