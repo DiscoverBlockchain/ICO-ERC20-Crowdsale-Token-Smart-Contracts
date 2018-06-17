@@ -13,11 +13,12 @@ contract DiscoverBlockchainToken is Ownable, BurnableToken, StandardToken {
     string public constant name = 'DiscoverBlockchain Token';
     string public constant symbol = 'DSC';
     uint8 public constant decimals = 18;
-    uint256 public constant INITIAL_SUPPLY = 500000000 * (10 ** uint256(decimals));
+    uint256 public constant TOTAL_SUPPLY = 500000000 * (10 ** uint256(decimals));
 
     constructor() public {
-        totalSupply_ = INITIAL_SUPPLY;
-        balances[this] = INITIAL_SUPPLY;
-        emit Transfer(address(0), this, INITIAL_SUPPLY);
+        totalSupply_ = TOTAL_SUPPLY;
+        balances[owner] = TOTAL_SUPPLY;
+
+        emit Transfer(address(0), owner, totalSupply_);
     }
 }
