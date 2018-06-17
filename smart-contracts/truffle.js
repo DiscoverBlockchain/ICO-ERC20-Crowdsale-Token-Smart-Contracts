@@ -1,5 +1,5 @@
 let HDWalletProvider = require("truffle-hdwallet-provider");
-let infura_apikey = "KbQuP7xkP1ZYNhJkUOXF"; // Either use this key or get yours at https://infura.io/signup. It's free.
+let infura_apikey = "U8Mgrf1lV0stZDvt0J6v"; // Either use this key or get yours at https://infura.io/signup. It's free.
 let mnemonic = "wealth gun firm oval hammer version satoshi tail foil scrub bright ask";
 
 module.exports = {
@@ -48,12 +48,6 @@ module.exports = {
             // provider - web3 provider instance Truffle should use to talk to the Ethereum network.
             //          - function that returns a web3 provider instance (see below.)
             //          - if specified, host and port are ignored.
-        }
-    },
-    solc: {
-        optimizer: {
-            enabled: true,
-            runs: 200
         }
     }
 };
