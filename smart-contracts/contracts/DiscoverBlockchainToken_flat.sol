@@ -352,19 +352,20 @@ contract StandardToken is ERC20, BasicToken {
 
 /**
  * @title DiscoverBlockchainToken
+ * @author Aleksandar Djordjevic
  * @dev DiscoverBlockchainToken is ERC20 Ownable, BurnableToken & StandardToken
  * It is meant to be used in a DiscoverBlockchain Crowdsale contract
  */
 contract DiscoverBlockchainToken is Ownable, BurnableToken, StandardToken {
-    string public constant name = 'DiscoverBlockchain Token';
-    string public constant symbol = 'DSC';
-    uint8 public constant decimals = 18;
-    uint256 public constant TOTAL_SUPPLY = 500000000 * (10 ** uint256(decimals));
+    string public constant name = 'DiscoverBlockchain Token'; // DSC name
+    string public constant symbol = 'DSC'; // DSC symbol
+    uint8 public constant decimals = 18; // DSC decimal number
+    uint256 public constant TOTAL_SUPPLY = 500000000 * (10 ** uint256(decimals)); // total amount of all DSC tokens - 500 000 000 DSC
 
     constructor() public {
-        totalSupply_ = TOTAL_SUPPLY;
-        balances[owner] = TOTAL_SUPPLY;
+        totalSupply_ = TOTAL_SUPPLY; // set total amount of tokens
+        balances[owner] = TOTAL_SUPPLY; // transfer all tokens to smart contract owner
 
-        emit Transfer(address(0), owner, totalSupply_);
+        emit Transfer(address(0), owner, totalSupply_); // emit Transfer event and notify that transfer of tokens was made
     }
 }
