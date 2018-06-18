@@ -1,9 +1,17 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.23;
 
-import './DiscoverBlockchainCoin.sol';
-import '../node_modules/zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
-import '../node_modules/zeppelin-solidity/contracts/crowdsale/RefundableCrowdsale.sol';
+import './DiscoverBlockchainToken.sol';
+import '../node_modules/openzeppelin-solidity/contracts/crowdsale/validation/CappedCrowdsale.sol';
+import '../node_modules/openzeppelin-solidity/contracts/crowdsale/distribution/RefundableCrowdsale.sol';
+import '../node_modules/openzeppelin-solidity/contracts/crowdsale/Crowdsale.sol';
+import '../node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 
+/**
+ * @title DiscoverBlockchainCrowdsale
+ * @author Aleksandar Djordjevic
+ * @dev DiscoverBlockchainCrowdsale is Crowdsale Smart Contract with a limit for total contributions, funding goal, and
+ * the possibility of users getting a refund if goal is not met.
+ */
 contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
 
     // ICO Stage
@@ -34,15 +42,15 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
 
     // Constructor
     // ============
-    function DiscoverBlockchainCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _rate, address _wallet, uint256 _goal, uint256 _cap) CappedCrowdsale(_cap) FinalizableCrowdsale() RefundableCrowdsale(_goal) Crowdsale(_startTime, _endTime, _rate, _wallet) public {
+    constructor(ERC20 _token, uint256 _rate, address _wallet, uint256 _goal, uint256 _cap) CappedCrowdsale(_cap) FinalizableCrowdsale() RefundableCrowdsale(_goal) Crowdsale(_rate, _wallet, _token) public {
         require(_goal <= _cap);
     }
     // =============
 
     // Token Deployment
     // =================
-    function createTokenContract() internal returns (MintableToken) {
-        return new DiscoverBlockchainCoin();
+    function createTokenContract() internal returns (BurnableToken) {
+        return new DiscoverBlockchainToken();
         // Deploys the ERC20 token. Automatically called when crowdsale contract is deployed
     }
     // ==================
@@ -90,14 +98,14 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
         if ((stage == CrowdsaleStage.PrivatePreICO) && (token.totalSupply() + tokensThatWillBeMintedAfterPurchase > totalTokensForSaleDuringPrivatePreICO)) {
             msg.sender.transfer(msg.value);
             // Refund them
-            EthRefunded("PrivatePreICO Limit Hit");
+            emit EthRefunded("PrivatePreICO Limit Hit");
             return;
         }
 
         if ((stage == CrowdsaleStage.PreICO) && (token.totalSupply() + tokensThatWillBeMintedAfterPurchase > totalTokensForSaleDuringPreICO)) {
             msg.sender.transfer(msg.value);
             // Refund them
-            EthRefunded("PreICO Limit Hit");
+            emit EthRefunded("PreICO Limit Hit");
             return;
         }
 
@@ -115,10 +123,10 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
     function forwardFunds() internal {
         if (stage == CrowdsaleStage.PrivatePreICO || stage == CrowdsaleStage.PreICO) {
             wallet.transfer(msg.value);
-            EthTransferred('Forwarding funds to wallet');
+            emit EthTransferred('Forwarding funds to wallet');
         } else if (stage == CrowdsaleStage.ICO) {
-            EthTransferred('Forwarding funds to refundable vault');
-            super.forwardFunds();
+            emit EthTransferred('Forwarding funds to refundable vault');
+            super._forwardFunds();
         }
     }
     // ===========================
@@ -136,8 +144,8 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
             tokensForEcosystem = tokensForEcosystem + unsoldTokens;
         }
 
-        token.mint(_ecosystemFund, tokensForEcosystem);
-        token.mint(_bountyFund, tokensForBounty);
+        token.transfer(_ecosystemFund, tokensForEcosystem);
+        token.transfer(_bountyFund, tokensForBounty);
         finalize();
     }
 }
