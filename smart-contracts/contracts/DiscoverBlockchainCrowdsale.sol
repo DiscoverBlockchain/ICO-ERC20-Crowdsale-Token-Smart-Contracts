@@ -13,7 +13,6 @@ import '../node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
  * the possibility of users getting a refund if goal is not met.
  */
 contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
-
     // ICO Stage
     // ============
     enum CrowdsaleStage {PrivatePreICO, PreICO, ICO}
@@ -40,25 +39,25 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
     event EthTransferred(string text);
     event EthRefunded(string text);
 
-    // Constructor
-    // ============
+    /**
+     * @dev DiscoverBlockchainCrowdsale constructor
+     */
     constructor(ERC20 _token, uint256 _rate, address _wallet, uint256 _goal, uint256 _cap) CappedCrowdsale(_cap) FinalizableCrowdsale() RefundableCrowdsale(_goal) Crowdsale(_rate, _wallet, _token) public {
         require(_goal <= _cap);
     }
-    // =============
 
-    // Token Deployment
-    // =================
+    /**
+     * @dev Token Deployment
+     */
     function createTokenContract() internal returns (BurnableToken) {
         return new DiscoverBlockchainToken();
         // Deploys the ERC20 token. Automatically called when crowdsale contract is deployed
     }
-    // ==================
 
-    // Crowdsale Stage Management
-    // =========================================================
-
-    // Change Crowdsale Stage. Available Options: PrivatePreICO, PreICO, ICO
+    /**
+     * @dev Change Crowdsale Stage
+     * Available Options: PrivatePreICO, PreICO, ICO
+     */
     function setCrowdsaleStage(uint value) public onlyOwner {
         CrowdsaleStage _stage;
 
@@ -83,15 +82,16 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
         }
     }
 
-    // Change the current rate
+    /**
+     * @dev Change the current rate
+     */
     function setCurrentRate(uint256 _rate) private {
         rate = _rate;
     }
 
-    // ================ Stage Management Over =====================
-
-    // Token Purchase
-    // =========================
+    /**
+     * @dev Token Purchase
+     */
     function() external payable {
         uint256 tokensThatWillBeMintedAfterPurchase = msg.value.mul(rate);
 
@@ -120,6 +120,9 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
         }
     }
 
+    /**
+     * @dev Determines how ETH is stored/forwarded on purchases
+     */
     function forwardFunds() internal {
         if (stage == CrowdsaleStage.PrivatePreICO || stage == CrowdsaleStage.PreICO) {
             wallet.transfer(msg.value);
@@ -129,11 +132,10 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
             super._forwardFunds();
         }
     }
-    // ===========================
 
-    // Finish: Mint Extra Tokens as needed before finalizing the Crowdsale.
-    // ====================================================================
-
+    /**
+     * @dev Transfer Extra Tokens as needed, before finalizing the Crowdsale
+     */
     function finish(address _ecosystemFund, address _bountyFund) public onlyOwner {
         require(!isFinalized);
         uint256 alreadyMinted = token.totalSupply();
