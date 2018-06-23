@@ -17,7 +17,8 @@ contract DiscoverBlockchainToken is Ownable, BurnableToken, StandardToken {
     uint256 public constant TOTAL_SUPPLY = 500000000 * (10 ** uint256(decimals)); // total amount of all DSC tokens - 500 000 000 DSC
 
     /**
-     * @dev DiscoverBlockchainToken constructor, sets total supply and assigns total supply to owner
+     * @dev DiscoverBlockchainToken constructor
+     * Sets total supply and assigns total supply to the owner
      */
     constructor() public {
         totalSupply_ = TOTAL_SUPPLY; // set total amount of tokens
