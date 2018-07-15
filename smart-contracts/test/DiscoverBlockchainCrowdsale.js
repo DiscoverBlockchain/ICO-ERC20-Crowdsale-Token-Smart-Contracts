@@ -1,5 +1,5 @@
 let DiscoverBlockchainCrowdsale = artifacts.require('DiscoverBlockchainCrowdsale');
-let DiscoverBlockchainToken = artifacts.require('DiscoverBlockchainCoin');
+let DiscoverBlockchainToken = artifacts.require('DiscoverBlockchainToken');
 
 contract('DiscoverBlockchainCrowdsale', function (accounts) {
     it('should deploy the token and store the address', function (done) {
