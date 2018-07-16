@@ -42,14 +42,15 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
     /**
      * @dev DiscoverBlockchainCrowdsale constructor
      */
-    constructor(ERC20 _token, uint256 _rate, address _wallet, uint256 _goal, uint256 _cap) CappedCrowdsale(_cap) FinalizableCrowdsale() RefundableCrowdsale(_goal) Crowdsale(_rate, _wallet, _token) public {
+    constructor(ERC20 _token, uint256 _rate, address _wallet, address _bountyFund, uint256 _goal, uint256 _cap) CappedCrowdsale(_cap) FinalizableCrowdsale() RefundableCrowdsale(_goal) Crowdsale(_rate, _wallet, _token) public {
         require(_goal <= _cap);
+        _token.transfer(_bountyFund, tokensForBounty);
     }
 
     /**
-     * @dev Token Deployment
+     * @dev Tsoken Deployment
      */
-    function createTokenContract() internal returns (BurnableToken) {
+    function createTokenContract() internal returns (BurnableToken) {s
         return new DiscoverBlockchainToken();
         // Deploys the ERC20 token. Automatically called when crowdsale contract is deployed
     }
@@ -70,7 +71,6 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
         }
 
         stage = _stage;
-
 
         // Set price of DSC tokens per 1 ETH for each crowdsale stage
         if (stage == CrowdsaleStage.PrivatePreICO) {
@@ -136,7 +136,7 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
     /**
      * @dev Transfer Extra Tokens as needed, before finalizing the Crowdsale
      */
-    function finish(address _ecosystemFund, address _bountyFund) public onlyOwner {
+    function finish(address _ecosystemFund) public onlyOwner {
         require(!isFinalized);
         uint256 alreadyMinted = token.totalSupply();
         require(alreadyMinted < maxTokens);
@@ -147,7 +147,6 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
         }
 
         token.transfer(_ecosystemFund, tokensForEcosystem);
-        token.transfer(_bountyFund, tokensForBounty);
         finalize();
     }
 }
