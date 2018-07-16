@@ -14,26 +14,20 @@ import '../node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
  */
 contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
     // ICO Stage
-    // ============
     enum CrowdsaleStage {PrivatePreICO, PreICO, ICO}
     CrowdsaleStage public stage = CrowdsaleStage.PrivatePreICO; // By default it's Private Pre Sale
-    // =============
 
     // Token Distribution
-    // =============================
     uint256 public maxTokens = 500000000000000000000000000; // There will be total 500 000 000 DiscoverBlockchain tokens
     uint256 public tokensForEcosystem = 100000000000000000000000000; // 100 000 000 DSC tokens are reserved for Ecosystem - Platform
     uint256 public tokensForBounty = 40000000000000000000000000; // 40 000 000 tokens are reserved for Bounties, Rewards & Bonuses
     uint256 public totalTokensForSale = 360000000000000000000000000; // 360 000 000 DSC tokens will be sold in Crowdsale
     uint256 public totalTokensForSaleDuringPrivatePreICO = 60000000000000000000000000; // 60 000 000 DSC tokens will be sold during Private PreICO
     uint256 public totalTokensForSaleDuringPreICO = 120000000000000000000000000; // 120 000 000 DSC tokens will be sold during Private PreICO
-    // ==============================
 
     // Amount raised in Private PreICO and PreICO
-    // ==================
     uint256 public totalWeiRaisedDuringPrivatePreICO;
     uint256 public totalWeiRaisedDuringPreICO;
-    // ===================
 
     // Events
     event EthTransferred(string text);
@@ -41,18 +35,13 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
 
     /**
      * @dev DiscoverBlockchainCrowdsale constructor
+     * Creates DiscoverBlockchainCrowdsale Smart Contracts
+     * Checks if the goal is less then hard cap and transfers tokens for bounty to bountyFund
      */
-    constructor(ERC20 _token, uint256 _rate, address _wallet, address _bountyFund, uint256 _goal, uint256 _cap) CappedCrowdsale(_cap) FinalizableCrowdsale() RefundableCrowdsale(_goal) Crowdsale(_rate, _wallet, _token) public {
+    constructor(ERC20 _token, uint256 _rate, address _wallet, address _bountyFund, address _ecosystemFund, uint256 _goal, uint256 _cap) CappedCrowdsale(_cap) FinalizableCrowdsale() RefundableCrowdsale(_goal) Crowdsale(_rate, _wallet, _token) public {
         require(_goal <= _cap);
         _token.transfer(_bountyFund, tokensForBounty);
-    }
-
-    /**
-     * @dev Tsoken Deployment
-     */
-    function createTokenContract() internal returns (BurnableToken) {s
-        return new DiscoverBlockchainToken();
-        // Deploys the ERC20 token. Automatically called when crowdsale contract is deployed
+        _token.transfer(_ecosystemFund, tokensForEcosystem);
     }
 
     /**
@@ -72,7 +61,7 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
 
         stage = _stage;
 
-        // Set price of DSC tokens per 1 ETH for each crowdsale stage
+        // Set price of DSC tokens per 1 ETH for each Crowdsale stage
         if (stage == CrowdsaleStage.PrivatePreICO) {
             setCurrentRate(10000);
         } else if (stage == CrowdsaleStage.PreICO) {
@@ -97,14 +86,12 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
 
         if ((stage == CrowdsaleStage.PrivatePreICO) && (token.totalSupply() + tokensThatWillBeMintedAfterPurchase > totalTokensForSaleDuringPrivatePreICO)) {
             msg.sender.transfer(msg.value);
-            // Refund them
             emit EthRefunded("PrivatePreICO Limit Hit");
             return;
         }
 
         if ((stage == CrowdsaleStage.PreICO) && (token.totalSupply() + tokensThatWillBeMintedAfterPurchase > totalTokensForSaleDuringPreICO)) {
             msg.sender.transfer(msg.value);
-            // Refund them
             emit EthRefunded("PreICO Limit Hit");
             return;
         }
@@ -134,19 +121,12 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
     }
 
     /**
-     * @dev Transfer Extra Tokens as needed, before finalizing the Crowdsale
+     * @dev Finalize Crowdsale
      */
-    function finish(address _ecosystemFund) public onlyOwner {
+    function finish() public onlyOwner {
         require(!isFinalized);
-        uint256 alreadyMinted = token.totalSupply();
-        require(alreadyMinted < maxTokens);
-
-        uint256 unsoldTokens = totalTokensForSale - alreadyMinted;
-        if (unsoldTokens > 0) {
-            tokensForEcosystem = tokensForEcosystem + unsoldTokens;
-        }
-
-        token.transfer(_ecosystemFund, tokensForEcosystem);
+        uint256 totalSupply = token.totalSupply();
+        require(totalSupply == maxTokens);
         finalize();
     }
 }
