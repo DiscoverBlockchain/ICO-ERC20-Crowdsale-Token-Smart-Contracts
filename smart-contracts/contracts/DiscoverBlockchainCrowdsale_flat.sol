@@ -831,6 +831,10 @@ contract DiscoverBlockchainToken is Ownable, BurnableToken, StandardToken {
     uint8 public constant decimals = 18; // DSC decimal number
     uint256 public constant TOTAL_SUPPLY = 500000000 * (10 ** uint256(decimals)); // total amount of all DSC tokens - 500 000 000 DSC
 
+    /**
+     * @dev DiscoverBlockchainToken constructor
+     * Sets total supply and assigns total supply to the owner
+     */
     constructor() public {
         totalSupply_ = TOTAL_SUPPLY; // set total amount of tokens
         balances[owner] = TOTAL_SUPPLY; // transfer all tokens to smart contract owner
@@ -848,52 +852,41 @@ contract DiscoverBlockchainToken is Ownable, BurnableToken, StandardToken {
  * the possibility of users getting a refund if goal is not met.
  */
 contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
-
     // ICO Stage
-    // ============
     enum CrowdsaleStage {PrivatePreICO, PreICO, ICO}
     CrowdsaleStage public stage = CrowdsaleStage.PrivatePreICO; // By default it's Private Pre Sale
-    // =============
 
     // Token Distribution
-    // =============================
     uint256 public maxTokens = 500000000000000000000000000; // There will be total 500 000 000 DiscoverBlockchain tokens
     uint256 public tokensForEcosystem = 100000000000000000000000000; // 100 000 000 DSC tokens are reserved for Ecosystem - Platform
     uint256 public tokensForBounty = 40000000000000000000000000; // 40 000 000 tokens are reserved for Bounties, Rewards & Bonuses
     uint256 public totalTokensForSale = 360000000000000000000000000; // 360 000 000 DSC tokens will be sold in Crowdsale
     uint256 public totalTokensForSaleDuringPrivatePreICO = 60000000000000000000000000; // 60 000 000 DSC tokens will be sold during Private PreICO
     uint256 public totalTokensForSaleDuringPreICO = 120000000000000000000000000; // 120 000 000 DSC tokens will be sold during Private PreICO
-    // ==============================
 
     // Amount raised in Private PreICO and PreICO
-    // ==================
     uint256 public totalWeiRaisedDuringPrivatePreICO;
     uint256 public totalWeiRaisedDuringPreICO;
-    // ===================
 
     // Events
     event EthTransferred(string text);
     event EthRefunded(string text);
 
-    // Constructor
-    // ============
-    constructor(ERC20 _token, uint256 _rate, address _wallet, uint256 _goal, uint256 _cap) CappedCrowdsale(_cap) FinalizableCrowdsale() RefundableCrowdsale(_goal) Crowdsale(_rate, _wallet, _token) public {
+    /**
+     * @dev DiscoverBlockchainCrowdsale constructor
+     * Creates DiscoverBlockchainCrowdsale Smart Contracts
+     * Checks if the goal is less then hard cap and transfers tokens for bounty to bountyFund
+     */
+    constructor(ERC20 _token, uint256 _rate, address _wallet, address _bountyFund, address _ecosystemFund, uint256 _goal, uint256 _cap) CappedCrowdsale(_cap) FinalizableCrowdsale() RefundableCrowdsale(_goal) Crowdsale(_rate, _wallet, _token) public {
         require(_goal <= _cap);
+        _token.transfer(_bountyFund, tokensForBounty);
+        _token.transfer(_ecosystemFund, tokensForEcosystem);
     }
-    // =============
 
-    // Token Deployment
-    // =================
-    function createTokenContract() internal returns (BurnableToken) {
-        return new DiscoverBlockchainToken();
-        // Deploys the ERC20 token. Automatically called when crowdsale contract is deployed
-    }
-    // ==================
-
-    // Crowdsale Stage Management
-    // =========================================================
-
-    // Change Crowdsale Stage. Available Options: PrivatePreICO, PreICO, ICO
+    /**
+     * @dev Change Crowdsale Stage
+     * Available Options: PrivatePreICO, PreICO, ICO
+     */
     function setCrowdsaleStage(uint value) public onlyOwner {
         CrowdsaleStage _stage;
 
@@ -907,8 +900,7 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
 
         stage = _stage;
 
-
-        // Set price of DSC tokens per 1 ETH for each crowdsale stage
+        // Set price of DSC tokens per 1 ETH for each Crowdsale stage
         if (stage == CrowdsaleStage.PrivatePreICO) {
             setCurrentRate(10000);
         } else if (stage == CrowdsaleStage.PreICO) {
@@ -918,28 +910,27 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
         }
     }
 
-    // Change the current rate
+    /**
+     * @dev Change the current rate
+     */
     function setCurrentRate(uint256 _rate) private {
         rate = _rate;
     }
 
-    // ================ Stage Management Over =====================
-
-    // Token Purchase
-    // =========================
+    /**
+     * @dev Token Purchase
+     */
     function() external payable {
         uint256 tokensThatWillBeMintedAfterPurchase = msg.value.mul(rate);
 
         if ((stage == CrowdsaleStage.PrivatePreICO) && (token.totalSupply() + tokensThatWillBeMintedAfterPurchase > totalTokensForSaleDuringPrivatePreICO)) {
             msg.sender.transfer(msg.value);
-            // Refund them
             emit EthRefunded("PrivatePreICO Limit Hit");
             return;
         }
 
         if ((stage == CrowdsaleStage.PreICO) && (token.totalSupply() + tokensThatWillBeMintedAfterPurchase > totalTokensForSaleDuringPreICO)) {
             msg.sender.transfer(msg.value);
-            // Refund them
             emit EthRefunded("PreICO Limit Hit");
             return;
         }
@@ -955,6 +946,9 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
         }
     }
 
+    /**
+     * @dev Determines how ETH is stored/forwarded on purchases
+     */
     function forwardFunds() internal {
         if (stage == CrowdsaleStage.PrivatePreICO || stage == CrowdsaleStage.PreICO) {
             wallet.transfer(msg.value);
@@ -964,23 +958,14 @@ contract DiscoverBlockchainCrowdsale is CappedCrowdsale, RefundableCrowdsale {
             super._forwardFunds();
         }
     }
-    // ===========================
 
-    // Finish: Mint Extra Tokens as needed before finalizing the Crowdsale.
-    // ====================================================================
-
-    function finish(address _ecosystemFund, address _bountyFund) public onlyOwner {
+    /**
+     * @dev Finalize Crowdsale
+     */
+    function finish() public onlyOwner {
         require(!isFinalized);
-        uint256 alreadyMinted = token.totalSupply();
-        require(alreadyMinted < maxTokens);
-
-        uint256 unsoldTokens = totalTokensForSale - alreadyMinted;
-        if (unsoldTokens > 0) {
-            tokensForEcosystem = tokensForEcosystem + unsoldTokens;
-        }
-
-        token.transfer(_ecosystemFund, tokensForEcosystem);
-        token.transfer(_bountyFund, tokensForBounty);
+        uint256 totalSupply = token.totalSupply();
+        require(totalSupply == maxTokens);
         finalize();
     }
 }
