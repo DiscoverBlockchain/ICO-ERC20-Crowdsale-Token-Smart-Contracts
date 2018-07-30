@@ -1,15 +1,17 @@
 pragma solidity ^0.4.24;
 
+import '../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol';
 import './DiscoverBlockchainToken.sol';
 import '../node_modules/openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
 
 /**
  * @title DiscoverBlockchainCrowdsale
- * @author Yosra Helal 
+ * @author Yosra Helal & Aleksandar Djordjevic
  * @dev DiscoverBlockchainCrowdsale is Crowdsale Smart Contract with a limit for total contributions, funding goal, and
  * the possibility of users getting a refund if goal is not met.
  */
 contract DiscoverBlockchainCrowdsale is Pausable {
+    using SafeMath for uint256;
     // ICO Stage
     enum CrowdsaleStage {PrivatePreICO, PreICO, ICO}
     CrowdsaleStage public stage = CrowdsaleStage.PrivatePreICO; // By default it's Private Pre Sale
@@ -17,6 +19,7 @@ contract DiscoverBlockchainCrowdsale is Pausable {
     // Token Distribution
     DiscoverBlockchainToken token;
     address public wallet; // wallet to save raised ether
+    uint256 public rate; // rate for tokens
     uint256 public maxTokens = 500000000000000000000000000; // There will be total 500 000 000 DiscoverBlockchain tokens
     uint256 public tokensForEcosystem = 100000000000000000000000000; // 100 000 000 DSC tokens are reserved for Ecosystem - Platform
     uint256 public tokensForBounty = 40000000000000000000000000; // 40 000 000 tokens are reserved for Bounties, Rewards & Bonuses
@@ -55,12 +58,13 @@ contract DiscoverBlockchainCrowdsale is Pausable {
      * Creates DiscoverBlockchainCrowdsale Smart Contracts
      * Checks if the goal is less then hard cap and transfers tokens for bounty to bountyFund
      */
-    constructor(ERC20 _token, uint256 _rate, address _wallet, address _bountyFund, address _ecosystemFund) public {
+    constructor(ERC20 _token, uint256 _rate, address _wallet, uint256 _goal, uint256 _cap, address _bountyFund, address _ecosystemFund) public {
         require(_goal <= _cap);
         wallet = _wallet;
         token = DiscoverBlockchainToken(_token);
         token.transfer(_bountyFund, tokensForBounty); // to validate
         token.transfer(_ecosystemFund, tokensForEcosystem); // to validate
+        setCurrentRate(_rate);
     }
 
     /**
@@ -68,9 +72,9 @@ contract DiscoverBlockchainCrowdsale is Pausable {
      */
     function() external payable {
         uint256 tokensToTransfer = msg.value.mul(rate);
-        require(totalWeiRaised.add(msg.value) <= hardCap));
+        require(totalWeiRaised.add(msg.value) <= hardCap);
         if (stage == CrowdsaleStage.PrivatePreICO) {
-          require(_value <= totalTokensForSaleDuringPrivatePreICO);
+          require(msg.value <= totalTokensForSaleDuringPrivatePreICO);
           token.transfer(msg.sender, tokensToTransfer);
           totalWeiRaisedDuringPrivatePreICO = totalWeiRaisedDuringPrivatePreICO.add(msg.value);
           totalWeiRaised = totalWeiRaised.add(msg.value);
@@ -80,13 +84,13 @@ contract DiscoverBlockchainCrowdsale is Pausable {
           return;
         }
         else if (stage == CrowdsaleStage.PreICO) {
-          require(_value <= totalTokensForSaleDuringPreICO);
+          require(msg.value <= totalTokensForSaleDuringPreICO);
           token.transfer(msg.sender, tokensToTransfer);
           totalWeiRaised = totalWeiRaised.add(msg.value);
           return;
         }
         else {
-          require(_value <= totalTokensForSale);
+          require(msg.value <= totalTokensForSale);
           token.transfer(msg.sender, tokensToTransfer);
           totalWeiRaised = totalWeiRaised.add(msg.value);
           return;
@@ -98,7 +102,7 @@ contract DiscoverBlockchainCrowdsale is Pausable {
      * Available Options: PrivatePreICO, PreICO, ICO
      */
     function setCrowdsaleStage(uint value) public onlyOwner {
-        require(value == CrowdsaleStage.PrivatePreICO || value == CrowdsaleStage.ICO);
+        require(value == uint(CrowdsaleStage.PrivatePreICO) || value == uint(CrowdsaleStage.ICO));
         if (uint(CrowdsaleStage.PrivatePreICO) == value) {
             stage = CrowdsaleStage.PrivatePreICO;
             // Set price of DSC tokens per 1 ETH for each the PrivatePreICO
@@ -108,13 +112,6 @@ contract DiscoverBlockchainCrowdsale is Pausable {
             // Set price of DSC tokens per 1 ETH for each the ICO
             setCurrentRate(5000);
         }
-    }
-    /*
-    * @dev Change the current rate by the owner,
-    * if the ETH prices change a lot during our Crowdsale
-    */
-    function setCurrentRate(uint256 _rate) public onlyOwner {
-        rate = _rate;
     }
 
     /**
@@ -131,7 +128,8 @@ contract DiscoverBlockchainCrowdsale is Pausable {
       for(uint i = 0; i < contributorsCount; i++){
         address contributor = contributorPositions[i];
         uint256 amountRefunded = contributions[contributor];
-        require(contributor.transfer(amountRefunded));
+        contributor.transfer(amountRefunded);
+        // require(contributor.transfer(amountRefunded));
         emit EthRefunded(address(this).balance, address(this), contributor);
       }
     }
