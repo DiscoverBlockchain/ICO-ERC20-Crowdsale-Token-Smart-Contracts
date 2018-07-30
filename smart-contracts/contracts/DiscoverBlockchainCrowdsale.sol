@@ -1,7 +1,6 @@
 pragma solidity ^0.4.24;
 
 import './DiscoverBlockchainToken.sol';
-import './DiscoverBlockcainToken.sol';
 import '../node_modules/openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
 
 /**
@@ -111,7 +110,7 @@ contract DiscoverBlockchainCrowdsale is Pausable {
         }
     }
     /*
-    * @dev change the currente rate by the owner,
+    * @dev Change the current rate by the owner,
     * if the ETH prices change a lot during our Crowdsale
     */
     function setCurrentRate(uint256 _rate) public onlyOwner {
@@ -126,7 +125,7 @@ contract DiscoverBlockchainCrowdsale is Pausable {
     }
 
     /**
-    * @dev refund all the contributors in the private PreICO
+    * @dev Refund all the contributors in the private PreICO
     */
     function _refund() internal {
       for(uint i = 0; i < contributorsCount; i++){
@@ -147,7 +146,7 @@ contract DiscoverBlockchainCrowdsale is Pausable {
     }
 
     /**
-    * @dev close the private ico period and switch to the pre sale period
+    * @dev Close the private ico period and switch to the pre sale period
     */
     function finishPrivatePreICO() public onlyOwner {
         require (now >= endDatePrivatePreICO);
