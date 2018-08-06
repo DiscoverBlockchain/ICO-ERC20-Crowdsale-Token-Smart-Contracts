@@ -1,7 +1,5 @@
 pragma solidity ^0.4.24;
 
-// File: node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol
-
 /**
  * @title Ownable
  * @dev The Ownable contract has an owner address, and provides basic authorization control
@@ -10,13 +8,11 @@ pragma solidity ^0.4.24;
 contract Ownable {
   address public owner;
 
-
   event OwnershipRenounced(address indexed previousOwner);
   event OwnershipTransferred(
     address indexed previousOwner,
     address indexed newOwner
   );
-
 
   /**
    * @dev The Ownable constructor sets the original `owner` of the contract to the sender
@@ -60,8 +56,6 @@ contract Ownable {
     owner = _newOwner;
   }
 }
-
-// File: node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol
 
 /**
  * @title SafeMath
@@ -113,8 +107,6 @@ library SafeMath {
   }
 }
 
-// File: node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20Basic.sol
-
 /**
  * @title ERC20Basic
  * @dev Simpler version of ERC20 interface
@@ -126,8 +118,6 @@ contract ERC20Basic {
   function transfer(address to, uint256 value) public returns (bool);
   event Transfer(address indexed from, address indexed to, uint256 value);
 }
-
-// File: node_modules/openzeppelin-solidity/contracts/token/ERC20/BasicToken.sol
 
 /**
  * @title Basic token
@@ -173,8 +163,6 @@ contract BasicToken is ERC20Basic {
 
 }
 
-// File: node_modules/openzeppelin-solidity/contracts/token/ERC20/BurnableToken.sol
-
 /**
  * @title Burnable Token
  * @dev Token that can be irreversibly burned (destroyed).
@@ -203,8 +191,6 @@ contract BurnableToken is BasicToken {
   }
 }
 
-// File: node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20.sol
-
 /**
  * @title ERC20 interface
  * @dev see https://github.com/ethereum/EIPs/issues/20
@@ -223,8 +209,6 @@ contract ERC20 is ERC20Basic {
     uint256 value
   );
 }
-
-// File: node_modules/openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol
 
 /**
  * @title Standard ERC20 token
@@ -347,8 +331,6 @@ contract StandardToken is ERC20, BasicToken {
   }
 
 }
-
-// File: contracts/DiscoverBlockchainToken.sol
 
 /**
  * @title DiscoverBlockchainToken
